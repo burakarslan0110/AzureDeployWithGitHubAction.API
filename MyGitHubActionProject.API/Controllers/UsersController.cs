@@ -18,5 +18,16 @@ namespace MyGitHubActionProject.API.Controllers
         {
             return Ok(Users);
         }
+
+        [HttpGet("GetUserById/{id}")] //yeni eklediðim metod
+        public IActionResult GetUserById(int id)
+        {
+            var user = Users.FirstOrDefault(u => u.ID == id);
+            if (user == null)
+                return NotFound(new { message = "Kullanýcý bulunamadý." });
+
+            return Ok(user);
+        }
+
     }
 }
