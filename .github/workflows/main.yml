@@ -45,7 +45,7 @@ jobs:
 
     - name: Deployment 
       # Projeyi Azure'a deploy etme adımı
-      uses: azure/wepapps-deploy@v2
+      uses: azure/wepapps-deploy@v3
       with:
         app-name: azuredeploywithgithubaction 
         # Azure üzerinde oluşturulmuş web uygulamasının adı burada belirtilir. Azure portalında bu uygulama adı ile bir web app oluşturulmalıdır.
