@@ -1,0 +1,55 @@
+name: Publish 
+# Workflow'un adı, bu isim GitHub Actions arayüzünde görülecektir.
+
+on:
+  workflow_dispatch: 
+  # Bu, iş akışını manuel olarak tetiklemeye olanak tanır. GitHub arayüzünden "Run Workflow" butonuyla başlatılabilir.
+  push: 
+    branches:
+      - master
+  # Bu, master branch'ine yapılan her push işleminde iş akışını tetikler.
+
+jobs: 
+  publish: 
+  # "publish" adında bir iş (job) tanımlıyoruz. Bu işin içeriği aşağıdaki adımlarda belirtilmiştir.
+    runs-on: ubuntu-latest 
+    # İş akışı, GitHub Actions'ın sağladığı Ubuntu tabanlı bir sanal makine üzerinde çalışacak.
+
+    steps: 
+    # Yapılacak adımlar burada sırasıyla tanımlanır.
+    - uses: actions/checkout@v3 
+      # Bu adımda, projedeki en güncel değişiklikleri almak için 'checkout' işlemi yapılır. Böylece çalışılacak repo yerel kopyaya alınır.
+
+    - name: Setup .NET 
+      # .NET SDK'sının kurulması adımı
+      uses: actions/setup-dotnet@v3
+      with:
+        dotnet-version: '8.0.x' 
+      # Burada .NET 8 SDK'sı kuruluyor. Belirtilen sürüm, projenin uyumlu olduğu sürümle eşleşmelidir.
+
+    - name: Restore 
+      # Proje bağımlılıklarını yüklemek için restore işlemi yapılır.
+      run: dotnet restore ./MyGitHubActionProject.API.sln
+      # 'dotnet restore' komutu, projenin NuGet bağımlılıklarını indirir ve projeyi derlemeye hazır hale getirir.
+
+    - name: Build 
+      # Projeyi build etme adımı
+      run: dotnet build ./MyGitHubActionProject.API.sln --configuration Release
+      # Bu adımda, projenin tüm dosyaları derlenir ve 'Release' yapılandırmasıyla üretim ortamı için optimize edilir.
+
+    - name: Publish 
+      # Projeyi yayınlama adımı
+      run: dotnet publish ./MyGitHubActionProject.API/MyGitHubActionProject.API.csproj --configuration Release --no-build --output './publish'
+      # 'dotnet publish' komutu ile projedeki yayınlanabilir dosyalar hazırlanır. --no-build parametresi daha önce yapılmış derlemeyi kullanır ve sadece yayınlama işlemi yapar.
+      # Yayınlanan dosyalar './publish' dizinine aktarılır.
+
+    - name: Deployment 
+      # Projeyi Azure'a deploy etme adımı
+      uses: azure/wepapps-deploy@v2
+      with:
+        app-name: azuredeploywithgithubaction 
+        # Azure üzerinde oluşturulmuş web uygulamasının adı burada belirtilir. Azure portalında bu uygulama adı ile bir web app oluşturulmalıdır.
+        publish-profile: ${{ secrets.AZ_PUBLISH_PROFILE }} 
+        # Azure'dan alınan publish profile burada kullanılır. Bu, Azure'a bağlantı sağlamak için gereklidir ve güvenlik nedeniyle GitHub Secrets'ta saklanır.
+        package: './publish' 
+        # 'dotnet publish' ile oluşturulan dosyaların bulunduğu dizin burada belirtilir. Azure, bu dosyaları alarak yayımlar.
